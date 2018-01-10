@@ -4,7 +4,6 @@
 
 #include <vector>
 #include <osa/osa.h>
-#include <comm/comm.h>
 #include <cvd/cvd.h>
 #include <cvd/cvd.hpp>
 #include "cvd_comm.hpp"

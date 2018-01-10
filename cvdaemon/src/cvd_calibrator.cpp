@@ -10,7 +10,6 @@
 #include <sys/mman.h>
 #include <osa/osa.h>
 #include <dscv/dscv.hpp>
-#include <comm/comm.h>
 #include "cvd_config.hpp"
 #include "cvd_calibrator.hpp"
 #include "cvd_image.hpp"

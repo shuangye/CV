@@ -6,7 +6,6 @@
 #include <osa/osa.h>
 #include <cvd/cvd.h>
 #include <cvd/cvd.hpp>
-#include <comm/comm.h>
 #include "../src/cvd_calibrator.hpp"
 #include "../src/cvd_face.hpp"
 
