@@ -3,7 +3,6 @@
 */
 
 #include <osa/osa.h>
-#include <comm/comm.h>
 #include <cvd/cvd.h>
 #include <cvc/cvc.h>
 #include "cvc_config.h"

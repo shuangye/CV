@@ -11,7 +11,6 @@
 #include <errno.h>
 #include <osa/osa.h>
 #include <assert.h>
-#include <comm/comm.h>
 #include <cvd/cvd.h>
 #include <cvc/cvc.h>
 #include "cvc_comm.h"
