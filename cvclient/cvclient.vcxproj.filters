@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\cvd">
+      <UniqueIdentifier>{2ad10f5c-1578-44f9-bb75-a6bb9c390c3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\comm">
+      <UniqueIdentifier>{3b66a882-26eb-4898-8f00-9869b99b8ceb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\osa">
+      <UniqueIdentifier>{e825a4c2-dce3-42f2-b1f5-e5a57520d272}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tests">
+      <UniqueIdentifier>{3c42a58a-8acd-46da-bbd1-59e3938d1ed9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\cvc">
+      <UniqueIdentifier>{97f26850-b448-40bf-8812-bee59e95e78a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="jni">
+      <UniqueIdentifier>{53bbd2f4-e2fc-4dc8-834a-63d40e90a2f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="jni\cvc">
+      <UniqueIdentifier>{74a6458d-22cf-4c99-aed8-eb50a691f519}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\cvc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\main.c">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="jni\cvc_CvcHelper.c">
+      <Filter>jni</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cvc_comm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\cvd\cvd.h">
+      <Filter>Header Files\cvd</Filter>
+    </ClInclude>
+    <ClInclude Include="include\comm\comm.h">
+      <Filter>Header Files\comm</Filter>
+    </ClInclude>
+    <ClInclude Include="include\osa\osa.h">
+      <Filter>Header Files\osa</Filter>
+    </ClInclude>
+    <ClInclude Include="include\osa\osa_datetime.h">
+      <Filter>Header Files\osa</Filter>
+    </ClInclude>
+    <ClInclude Include="include\osa\osa_log.h">
+      <Filter>Header Files\osa</Filter>
+    </ClInclude>
+    <ClInclude Include="include\osa\osa_macro.h">
+      <Filter>Header Files\osa</Filter>
+    </ClInclude>
+    <ClInclude Include="include\osa\osa_platforms.h">
+      <Filter>Header Files\osa</Filter>
+    </ClInclude>
+    <ClInclude Include="include\osa\osa_primary_types.h">
+      <Filter>Header Files\osa</Filter>
+    </ClInclude>
+    <ClInclude Include="include\osa\osa_status.h">
+      <Filter>Header Files\osa</Filter>
+    </ClInclude>
+    <ClInclude Include="include\osa\osa_string.h">
+      <Filter>Header Files\osa</Filter>
+    </ClInclude>
+    <ClInclude Include="include\osa\osa_types.h">
+      <Filter>Header Files\osa</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cvc_config.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\cvc\cvc.h">
+      <Filter>Header Files\cvc</Filter>
+    </ClInclude>
+    <ClInclude Include="jni\cvc_CvcHelper.h">
+      <Filter>jni</Filter>
+    </ClInclude>
+    <ClInclude Include="include\comm\comm_shm.h">
+      <Filter>Header Files\comm</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cvc_comm.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="jni\cvc\Main.java">
+      <Filter>jni\cvc</Filter>
+    </None>
+    <None Include="jni\cvc\CvcHelper.java">
+      <Filter>jni\cvc</Filter>
+    </None>
+    <None Include="jni\cvc\CvcRect.java" />
+  </ItemGroup>
+</Project>
