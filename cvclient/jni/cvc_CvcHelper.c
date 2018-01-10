@@ -89,13 +89,13 @@ JNIEXPORT jint JNICALL Java_cvc_CvcHelper_CVC_1determineLivingFace(JNIEnv *env, 
     int ret;
     Int32 possibility = 0;
     void *pFace = NULL;
-    size_t len = 0;
+    int len = 0;
 
 
     pFace = (*env)->GetByteArrayElements(env, jFace, 0);
     (*env)->GetIntArrayRegion(env, jLen, 0, 1, &len);
     
-    ret = CVC_determineLivingFace(&possibility, pFace, &len);
+    ret = CVC_determineLivingFace(&possibility, pFace, (size_t *)&len);
     if (OSA_isSucceeded(ret)) {
         (*env)->SetIntArrayRegion(env, jPossibility, 0, 1, &possibility);
         (*env)->SetIntArrayRegion(env, jLen, 0, 1, &len);
