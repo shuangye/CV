@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\face">
+      <UniqueIdentifier>{8a7bbc46-3ea0-4375-ab21-6f9a87b5a415}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\dscv">
+      <UniqueIdentifier>{d1894671-6597-4edd-ac45-e5c63388a36f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\cvd">
+      <UniqueIdentifier>{230b6ec6-543e-4980-afee-fd9e74060678}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tests">
+      <UniqueIdentifier>{cf31e3b5-c20f-47b4-8a7c-1e7c5f06b915}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mediad">
+      <UniqueIdentifier>{d379eae0-4f91-4b05-9dbb-b03c40a50262}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\cvd_comm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cvd_image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cvd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\main.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cvd_calibrator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cvd_face.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cvd_image_provider.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cvd_debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\face\face.h">
+      <Filter>Header Files\face</Filter>
+    </ClInclude>
+    <ClInclude Include="include\face\face.hpp">
+      <Filter>Header Files\face</Filter>
+    </ClInclude>
+    <ClInclude Include="include\face\face_definitions.h">
+      <Filter>Header Files\face</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dscv\dscv.h">
+      <Filter>Header Files\dscv</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dscv\dscv.hpp">
+      <Filter>Header Files\dscv</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dscv\dscv_calibrator.hpp">
+      <Filter>Header Files\dscv</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dscv\dscv_definitions.h">
+      <Filter>Header Files\dscv</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dscv\dscv_frame.hpp">
+      <Filter>Header Files\dscv</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dscv\dscv_matutils.hpp">
+      <Filter>Header Files\dscv</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dscv\dscv_rectutils.hpp">
+      <Filter>Header Files\dscv</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dscv\dscv_types.h">
+      <Filter>Header Files\dscv</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cvd_comm.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cvd_config.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cvd_face.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\cvd\cvd.h">
+      <Filter>Header Files\cvd</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cvd_image.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\cvd\cvd.hpp">
+      <Filter>Header Files\cvd</Filter>
+    </ClInclude>
+    <ClInclude Include="include\cvd\cvd_image_provider.h">
+      <Filter>Header Files\cvd</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cvd_calibrator.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dscv\dscv_rectifier.hpp">
+      <Filter>Header Files\dscv</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cvd_pri.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cvd_debug.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mediad\mediad.h">
+      <Filter>Header Files\mediad</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mediad\mediad_config.h">
+      <Filter>Header Files\mediad</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mediad\mediad_command.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mio\camera.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mio\mio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mio\mio.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mio\mio_definitions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mio\image_manager\config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mio\image_manager\consumer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mio\image_manager\image_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mio\image_manager\memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mio\image_manager\producer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
