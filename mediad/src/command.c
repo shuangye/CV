@@ -57,6 +57,8 @@ static void *connectionMain(void *arg)
             continue;
         }
 
+        OSA_info("Producer %d got a command %d.\n", producerId, message.command);
+
         producerHandle = MEDIAD_gImageProducerHandles[producerId];
         
         switch (message.command) {

@@ -26,10 +26,11 @@ static void * MEDIAD_imageProducerMain(void *pArg)
 {
     int ret;
     unsigned int i = 0;
+    unsigned int framesCount = 0;
     const int kProducerId = (int)pArg;
     const MIO_ImageManager_ProducerHandle producerHandle = MEDIAD_gImageProducerHandles[kProducerId];
     DSCV_Frame frame;
-
+    
 
     OSA_info("Created image producer %d. Process %ld, thread %ld.\n", kProducerId, (long)OSA_getpid(), (long)OSA_gettid());
         
@@ -42,7 +43,7 @@ static void * MEDIAD_imageProducerMain(void *pArg)
 
         if (!MIO_imageManager_producerIsStreaming(producerHandle)) {
             ++i;
-            if (0 == i % 64) {
+            if (0 == i % 128) {
                 /* Give debugger a hint, but do not be too frequent. */
                 OSA_info("Producer %d is not streaming.\n", kProducerId);
             }
@@ -60,7 +61,7 @@ static void * MEDIAD_imageProducerMain(void *pArg)
             continue;
         }
 
-        OSA_debug("Producer %d got one frame.\n", kProducerId);
+        OSA_debug("Producer %d got frame %u. Counter = %u.\n", kProducerId, frame.index, framesCount);
 
 #ifdef OSA_DEBUG
         Char _label[64];
@@ -70,18 +71,18 @@ static void * MEDIAD_imageProducerMain(void *pArg)
 
         ret = MIO_imageManager_writeFrame(MEDIAD_gImageManagerHandle, kProducerId, &frame);
         if (OSA_isFailed(ret)) {
-            OSA_warn("Failed to write frame from producer %d to memory: %d.\n", kProducerId, ret);
+            OSA_warn("Failed to write frame %u from producer %d to memory: %d.\n", frame.index, kProducerId, ret);
         }
 
-        OSA_debug("Producer %d wrote one frame to memory region.\n", kProducerId);
+        OSA_debug("Producer %d wrote frame %u to memory region. Counter = %u.\n", kProducerId, frame.index, framesCount);
 
         ret = MIO_imageManager_producerPutFrame(producerHandle, &frame);
         if (OSA_isFailed(ret)) {
-            OSA_warn("Failed to put frame to image producer %d: %d.\n", kProducerId, ret);
+            OSA_warn("Failed to put frame %u to image producer %d: %d.\n", frame.index, kProducerId, ret);
             continue;
         }
 
-        OSA_debug("Producer %d released one frame.\n", kProducerId);
+        OSA_debug("Producer %d released frame %u. Counter = %u.\n", kProducerId, frame.index, framesCount);
     }
 
     OSA_info("Image producer %d, process %ld thread %ld quiting...\n", kProducerId, (long)OSA_getpid(), (long)OSA_gettid());

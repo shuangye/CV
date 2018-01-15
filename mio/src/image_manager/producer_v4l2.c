@@ -52,7 +52,7 @@ typedef struct LVC_Device {
     int                                   fd;
     unsigned int                          driverBuffersCount;  /* actual buffers count allocated in the driver */
     MIO_ImageManager_Producer_V4l2_Item   items[MIO_IMAGE_MANAGER_PRODUCER_V4L2_FRAMES_COUNT];
-    Uint32                                usedItemsCount;
+    Int32                                 usedItemsCount;
     Uint32                                isStreaming    : 1;
     Uint32                                padding1       : 31;
     pthread_rwlock_t                      lock;                 /* protects the `isStreaming` flag */
@@ -239,18 +239,26 @@ static int queryDevice(const MIO_ImageManager_Producer_V4l2Device *pDevice)
 static int releaseDriverBuffers(MIO_ImageManager_Producer_V4l2Device *pDevice)
 {
     int ret;
-    unsigned int i;
     enum v4l2_buf_type type = gkBufferType;
     struct v4l2_requestbuffers req;
+    unsigned int i;
+    unsigned int count;
+    
 
-
-    if (MIO_imageManager_producerIsStreaming(pDevice)) {
-        MIO_imageManager_producerStopStreaming(pDevice);
-    }
-
-    /* When requesting to release driver buffers, these buffers may still being used by consumers. So wait before releasing driver buffers. */
-    while (__atomic_load_n(&pDevice->usedItemsCount, __ATOMIC_RELAXED) > 0) {
-        OSA_msleep(10);
+    /* 
+      Issue A: When requesting to release driver buffers, these buffers may still being used by consumers. So wait before releasing driver buffers.
+      Issue B: Calling to `releaseOneFrameToDriver` may fail with errno 16 (device or resource busy). As a result, the used buffers `count` keeps being > 0 here,
+               and it spins forever in this loop. So lets set a threshold. 
+      Solution to issue B is ugly, since it confilicts with the solution to issue A.
+     */
+    i = 0;
+    while ((count = __atomic_load_n(&pDevice->usedItemsCount, __ATOMIC_RELAXED)) > 0) {
+        OSA_debug("Waiting for all buffers to be released. There is/are still %u buffers.", count);
+        OSA_msleep(30);
+        ++i;
+        if (i > 5) {
+            break;
+        }
     }
 
     /* When frame size or pixel format is changed, per-buffer size may change as well. 
