@@ -100,6 +100,11 @@ static void *connectionMain(void *arg)
 
         OSA_info("Producer %d got a command %d; processing result is %d.\n", producerId, message.command, ret);
 
+        if (!message.needsAck) {
+            continue;
+        }
+
+        message.needsAck = 0;    /* clear this flag since we are acknowledging */
         message.status = ret;
 
         /* in case the sonnection is closed by the other end */

@@ -44,6 +44,8 @@ extern "C" {
         Int32                           producerId;
         Int32                           command;    /* MEDIAD_Command */
         Int32                           status;
+        Uint32                          needsAck : 1;
+        Uint32                          padding1 : 31;
         Int32                           args[8];
     } MEDIAD_CommandMessage;
 

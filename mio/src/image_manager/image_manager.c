@@ -432,7 +432,7 @@ int MIO_imageManager_writeFrame(MIO_ImageManager_Handle handle, const int produc
             }
 #else
             pthread_rwlock_unlock(&pDistribution->lock);
-            OSA_info("Producer %d all frames are used by consumer %u, and will not overwrite there.\n", producerId, j);
+            OSA_info("Producer %d all frame buffers are being used by consumer %u, and will not overwrite there.\n", producerId, j);
             continue;
 #endif
         }
@@ -549,11 +549,12 @@ int MIO_imageManager_releaseFrame(MIO_ImageManager_Handle handle, const int prod
         OSA_error("Invalid parameters %p, %d, %d, %p.\n", pManager, producerId, consumerRole, pFrame);
         return OSA_STATUS_EINVAL;
     }
-
+        
     pProvider = &pManager->pHeader->providers[producerId];
     pDistribution = &pProvider->distributions[consumerRole];
 
     if (!OSA_isInRange(pFrame->index, 0, pDistribution->maxFramesCount)) {
+        OSA_error("Producer %d consumer role %d. Frame to be released has an invalid index %u.\n", producerId, consumerRole, pFrame->index);
         return OSA_STATUS_EINVAL;
     }
 
@@ -564,6 +565,7 @@ int MIO_imageManager_releaseFrame(MIO_ImageManager_Handle handle, const int prod
     pFrameHeader->status = MIO_IMAGE_MANAGER_IMAGE_STATUS_NONE;
     pthread_rwlock_unlock(&pDistribution->lock);
 
+    OSA_debug("Consumer %d with pid %ld tid %ld released frame of index %u to producer %d.\n", consumerRole, (long)OSA_getpid(), (long)OSA_gettid(), pFrame->index, producerId);
     return OSA_STATUS_OK;
 }
 

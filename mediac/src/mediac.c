@@ -47,11 +47,14 @@ static int sendMessage(MEDIAC_Mediac *pMediac, MEDIAD_CommandMessage *pMessage)
         return errno;
     }
 
+    if (!pMessage->needsAck) {
+        return OSA_STATUS_OK;
+    }
+
     transmittedLen = recv(pMediac->sd, &response, MEDIAC_COMMAND_MESSAGE_LEN, 0);
     if (transmittedLen != MEDIAC_COMMAND_MESSAGE_LEN) {
         return errno;
     }
-
     return response.status;
 }
 
@@ -127,11 +130,10 @@ int MEDIAC_deinit(MEDIAC_Handle handle)
     }
 
     if (pMediac->sd >= 0) {
-        /* send only, no need to wait for response */
+        OSA_clear(&message);
         message.producerId = pMediac->id;
         message.command = MEDIAD_COMMAND_DISCONNECT;
-        send(pMediac->sd, &message, MEDIAC_COMMAND_MESSAGE_LEN, 0);
-
+        sendMessage(pMediac, &message);
         close(pMediac->sd);
         pMediac->sd = -1;
     }
@@ -155,8 +157,10 @@ int MEDIAC_open(MEDIAC_Handle handle)
         return OSA_STATUS_EINVAL;
     }
 
+    OSA_clear(&message);
     message.producerId = pMediac->id;
     message.command = MEDIAD_COMMAND_OPEN;
+    message.needsAck = 1;
     return sendMessage(pMediac, &message);
 }
 
@@ -170,6 +174,7 @@ int MEDIAC_close(MEDIAC_Handle handle)
         return OSA_STATUS_EINVAL;
     }
 
+    OSA_clear(&message);
     message.producerId = pMediac->id;
     message.command = MEDIAD_COMMAND_CLOSE;
     return sendMessage(pMediac, &message);
@@ -185,11 +190,13 @@ int MEDIAC_setFormat(MEDIAC_Handle handle, const int frameType, const OSA_Size f
         return OSA_STATUS_EINVAL;
     }
 
+    OSA_clear(&message);
     message.producerId = pMediac->id;
+    message.command = MEDIAD_COMMAND_SET_FORMAT;
+    message.needsAck = 1;
     message.args[0] = frameType;
     message.args[1] = frameSize.w;
     message.args[2] = frameSize.h;
-    message.command = MEDIAD_COMMAND_SET_FORMAT;
     return sendMessage(pMediac, &message);
 }
 
@@ -203,9 +210,11 @@ int MEDIAC_setFrameRate(MEDIAC_Handle handle, const int frameRate)
         return OSA_STATUS_EINVAL;
     }
 
+    OSA_clear(&message);
     message.producerId = pMediac->id;
-    message.args[0] = frameRate;
     message.command = MEDIAD_COMMAND_SET_FRAME_RATE;
+    message.needsAck = 1;
+    message.args[0] = frameRate;
     return sendMessage(pMediac, &message);
 }
 
@@ -219,8 +228,10 @@ int MEDIAC_startStreaming(MEDIAC_Handle handle)
         return OSA_STATUS_EINVAL;
     }
 
+    OSA_clear(&message);
     message.producerId = pMediac->id;
     message.command = MEDIAD_COMMAND_START_IMAGE_STREAMING;
+    message.needsAck = 1;
     return sendMessage(pMediac, &message);
 }
 
@@ -234,8 +245,10 @@ int MEDIAC_stopStreaming(MEDIAC_Handle handle)
         return OSA_STATUS_EINVAL;
     }
 
+    OSA_clear(&message);
     message.producerId = pMediac->id;
     message.command = MEDIAD_COMMAND_STOP_IMAGE_STREAMING;
+    message.needsAck = 1;
     return sendMessage(pMediac, &message);
 }
 
