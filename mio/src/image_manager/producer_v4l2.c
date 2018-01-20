@@ -26,6 +26,7 @@
                                                                                   (char)(code >> 8),             \
                                                                                   (char)(code >> 16),            \
                                                                                   (char)(code >> 24))
+#define USE_GCC_ATOMIC_OPERATION                                          OSA_True
 
 
 
@@ -53,9 +54,7 @@ typedef struct LVC_Device {
     unsigned int                          driverBuffersCount;  /* actual buffers count allocated in the driver */
     MIO_ImageManager_Producer_V4l2_Item   items[MIO_IMAGE_MANAGER_PRODUCER_V4L2_FRAMES_COUNT];
     Int32                                 usedItemsCount;
-    Uint32                                isStreaming    : 1;
-    Uint32                                padding1       : 31;
-    pthread_rwlock_t                      lock;                 /* protects the `isStreaming` flag */
+    Uint32                                isStreaming;
 } MIO_ImageManager_Producer_V4l2Device;
 
 
@@ -437,10 +436,14 @@ static int releaseOneFrameToDriver(MIO_ImageManager_Producer_V4l2Device *pDevice
 
 static void setStreaming(MIO_ImageManager_Producer_V4l2Device *pDevice, const Bool streaming)
 {   
+#if USE_GCC_ATOMIC_OPERATION
+    __atomic_store_n(&pDevice->isStreaming, !!streaming, __ATOMIC_RELAXED);
+#else
     pthread_rwlock_wrlock(&pDevice->lock);
     pDevice->isStreaming = !!streaming;
     pthread_rwlock_unlock(&pDevice->lock);
-    OSA_debug("Device %s streaming was set to %d.\n", pDevice->devicePath, pDevice->isStreaming);
+#endif
+    OSA_debug("Device %s streaming was set to %d.\n", pDevice->devicePath, streaming);
 }
 
 
@@ -472,7 +475,6 @@ int MIO_imageManager_producerInit(const int producerId, MIO_ImageManager_Produce
     OSA_strncpy(pDevice->devicePath, gpDevicePaths[producerId]);
     pDevice->fd = -1;    /* open as needed, thus to avoid using the device all the time */
     pDevice->usedItemsCount = 0;
-    pthread_rwlock_init(&pDevice->lock, NULL);
     
     *pHandle = pDevice;  
     OSA_info("Inited device %s by pid %ld tid %ld.\n", pDevice->devicePath, (long)OSA_getpid(), (long)OSA_gettid());
@@ -491,8 +493,6 @@ int MIO_imageManager_producerDeinit(MIO_ImageManager_ProducerHandle handle)
         
     MIO_imageManager_producerClose(handle);
 
-    pthread_rwlock_destroy(&pDevice->lock);
-    
     OSA_info("Deinited device %s by pid %ld tid %ld.\n", pDevice->devicePath, (long)OSA_getpid(), (long)OSA_gettid());
     free(pDevice);
     pDevice = NULL;
@@ -786,10 +786,13 @@ int MIO_imageManager_producerIsStreaming(const MIO_ImageManager_ProducerHandle h
     if (NULL == pDevice) {
         return OSA_False;
     }
+#if USE_GCC_ATOMIC_OPERATION
+    ret = __atomic_load_n(&pDevice->isStreaming, __ATOMIC_RELAXED);
+#else
     pthread_rwlock_rdlock(&pDevice->lock);
     ret = pDevice->isStreaming;
     pthread_rwlock_unlock(&pDevice->lock);
-    OSA_debug("Device %s is streaming = %d.\n", pDevice->devicePath, pDevice->isStreaming);
+#endif
     return ret;
 }
 
