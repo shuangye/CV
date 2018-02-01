@@ -2,11 +2,12 @@
 #include <fstream>>
 #include <osa/osa.h>
 #include <dscv/dscv.hpp>
-#include <cvio/cvio.hpp>
+#include <mio/mio.hpp>
 #include "../src/dscv_config.h"
 #include "dscv_tests.hpp"
 
 using namespace std;
+using namespace mio;
 
 
 static size_t DSCV_getFileSize(const Char *pPath)

@@ -1,10 +1,13 @@
 #include <osa/osa.h>
 #include <dscv/dscv.hpp>
-#include <cvio/cvio.hpp>
+#include <mio/mio.hpp>
 #include "../src/dscv_config.h"
 #include "dscv_tests.hpp"
 
 #define DSCV_CALIBRATOR_USE_CAMERA 1
+
+using namespace mio;
+
 
 static const cv::Size kPatternSize(9, 6);
 
