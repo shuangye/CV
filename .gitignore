@@ -8,12 +8,12 @@ $RECYCLE.BIN/
 
 ._*
 *~
-
 *.obj
 *.o
-*.so
 *.d
 *.class
+*.so
+*.a
 *.log
 *.tlog
 
@@ -34,6 +34,7 @@ obj/
 /cvdaemon/include/osa/
 
 /dscv/include/osa/
+/dscv/include/mio/
 
 /face/include/dscv/
 /face/include/osa/
