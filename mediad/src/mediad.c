@@ -26,6 +26,7 @@ static void * MEDIAD_imageProducerMain(void *pArg)
 {
     int ret;
     unsigned int i = 0;
+    unsigned int successiveFailuresCount = 0;
     unsigned int framesCount = 0;
     const int kProducerId = (int)pArg;
     const MIO_ImageManager_ProducerHandle producerHandle = MEDIAD_gImageProducerHandles[kProducerId];
@@ -52,6 +53,11 @@ static void * MEDIAD_imageProducerMain(void *pArg)
 
         ret = MIO_imageManager_producerGetFrame(producerHandle, &frame);
         if (OSA_isFailed(ret)) {
+            ++successiveFailuresCount;
+            if (successiveFailuresCount >= 500) {
+                system("reboot");  /* TODO: this is a bad design, because handling camera failure is not the responsibility of thid module */ 
+            }
+
             if (OSA_STATUS_EAGAIN == ret) {
                 OSA_debug("Try to get frame from producer %d next time.\n", kProducerId);
                 continue;
@@ -60,6 +66,8 @@ static void * MEDIAD_imageProducerMain(void *pArg)
             OSA_warn("Failed to get frame from image producer %d: %d.\n", kProducerId, ret);
             continue;
         }
+
+        successiveFailuresCount = 0;
 
         OSA_debug("Producer %d got frame %u. Counter = %u.\n", kProducerId, frame.index, framesCount);
 
@@ -106,7 +114,7 @@ int MEDIAD_init()
 
     OSA_clear(&imageManagerConfig);
     imageManagerConfig.isProducer = 1;
-    imageManagerConfig.frameFormat = DSCV_FRAME_TYPE_YUYV;
+    imageManagerConfig.frameFormat = DSCV_FRAME_TYPE_YUYV; // DSCV_FRAME_TYPE_JPG;
     imageManagerConfig.frameSize.w = 640;
     imageManagerConfig.frameSize.h = 480;
 
