@@ -99,6 +99,7 @@ static size_t calcFrameDataLen(const DSCV_FrameType type, const OSA_Size size)
         break;
     case DSCV_FRAME_TYPE_YUV422:
     case DSCV_FRAME_TYPE_YUYV:
+    case DSCV_FRAME_TYPE_JPG:  /* give max since the length of every JPG frame varies */
         len = size.w * size.h * 2;
         break;
     default:
@@ -382,10 +383,23 @@ int MIO_imageManager_writeFrame(MIO_ImageManager_Handle handle, const int produc
 
     pProvider = &pManager->pHeader->providers[producerId];
 
-    if (pFrame->type != pProvider->format || pFrame->size.w != pProvider->size.w || pFrame->size.h != pProvider->size.h || pFrame->dataLen != pProvider->frameDataLen) {
-        OSA_error("Invalid frame format %d size %dx%d, length %u, expected format %d size %dx%d length %u.\n", 
-            pFrame->type, pFrame->size.w, pFrame->size.h, pFrame->dataLen, pProvider->format, pProvider->size.w, pProvider->size.h, pProvider->frameDataLen);
+    if (pFrame->type != pProvider->format || pFrame->size.w != pProvider->size.w || pFrame->size.h != pProvider->size.h) {
+        OSA_error("Invalid frame format %d size %dx%d, expected format %d size %dx%d.\n",
+            pFrame->type, pFrame->size.w, pFrame->size.h, pProvider->format, pProvider->size.w, pProvider->size.h);
         return OSA_STATUS_EINVAL;
+    }
+
+    if (DSCV_FRAME_TYPE_JPG == pProvider->format) {
+        if (pFrame->dataLen > pProvider->frameDataLen) {
+            OSA_error("Frame length %u for frame format JPG exceeds the max length %u.\n", pFrame->dataLen, pProvider->frameDataLen);
+            return OSA_STATUS_EINVAL;
+        }
+    }
+    else {
+        if (pFrame->dataLen != pProvider->frameDataLen) {
+            OSA_error("Invalid frame length %u for frame format %d, expected length %u.\n", pFrame->dataLen, pFrame->type, pProvider->frameDataLen);
+            return OSA_STATUS_EINVAL;
+        }
     }
         
     /* write to all distributions */
@@ -450,7 +464,7 @@ int MIO_imageManager_writeFrame(MIO_ImageManager_Handle handle, const int produc
         pFrameHeader->frame.index = writingPosition;
         OSA_debug("Producer %d distribution %d frame index %u, copying %p -> %p with len %u. Dist base %p, write index %u\n", 
             producerId, j, pFrame->index, pFrame->pData, pFrameData, pFrame->dataLen, (void *)baseAddr, writingPosition);
-        memcpy(pFrameData, pFrame->pData, pProvider->frameDataLen);
+        memcpy(pFrameData, pFrame->pData, pFrame->dataLen);  // TODO: convert to YUV if JPG
                 
         ++writingPosition;
         writingPosition %= pDistribution->maxFramesCount;

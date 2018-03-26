@@ -116,24 +116,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\mio\image_manager\config.h" />
     <ClInclude Include="include\mio\image_manager\consumer.h" />
+    <ClInclude Include="include\mio\image_manager\image_manager.h" />
+    <ClInclude Include="include\mio\image_manager\memory.h" />
+    <ClInclude Include="include\mio\image_manager\producer.h" />
     <ClInclude Include="include\mio\mio.h" />
     <ClInclude Include="include\mio\mio.hpp" />
     <ClInclude Include="include\mio\camera.hpp" />
     <ClInclude Include="include\mio\mio_definitions.h" />
-    <ClInclude Include="include\mio\image_manager\image_manager.h" />
-    <ClInclude Include="include\mio\image_manager\config.h" />
-    <ClInclude Include="include\mio\image_manager\memory.h" />
     <ClInclude Include="src\mio_config.h" />
-    <ClInclude Include="include\mio\image_manager\producer.h" />
     <ClInclude Include="tests\mio_tests.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\mio\camera.cpp" />
     <ClCompile Include="src\image_manager\image_manager.c" />
+    <ClCompile Include="src\image_manager\memory.c" />
     <ClCompile Include="src\image_manager\producer_fake.c" />
     <ClCompile Include="src\image_manager\producer_v4l2.c" />
-    <ClCompile Include="src\image_manager\memory.c" />
+    <ClCompile Include="src\mio\camera.cpp" />
     <ClCompile Include="tests\mio_camera_test.cpp" />
     <ClCompile Include="tests\main.cpp" />
   </ItemGroup>

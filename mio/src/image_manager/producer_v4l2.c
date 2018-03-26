@@ -87,7 +87,7 @@ static int mapFrameFormat(const int format)
         ret = V4L2_PIX_FMT_YUYV;
         break;
     case DSCV_FRAME_TYPE_JPG:
-        ret = V4L2_PIX_FMT_JPEG;
+        ret = V4L2_PIX_FMT_MJPEG;
         break;
     default:
         OSA_warn("Unsupported frame format %d. Defaults to YUV420SP.\n", format);

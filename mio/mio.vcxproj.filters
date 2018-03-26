@@ -33,7 +33,16 @@
     <ClInclude Include="include\mio\mio_definitions.h">
       <Filter>Header Files\cvio</Filter>
     </ClInclude>
+    <ClInclude Include="tests\mio_tests.hpp">
+      <Filter>Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mio\camera.hpp">
+      <Filter>Header Files\cvio</Filter>
+    </ClInclude>
     <ClInclude Include="include\mio\image_manager\config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mio\image_manager\consumer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\mio\image_manager\image_manager.h">
@@ -42,40 +51,31 @@
     <ClInclude Include="include\mio\image_manager\memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\mio\image_manager\consumer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\mio\image_manager\producer.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tests\mio_tests.hpp">
-      <Filter>Tests</Filter>
-    </ClInclude>
-    <ClInclude Include="include\mio\camera.hpp">
-      <Filter>Header Files\cvio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="tests\main.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
-    <ClCompile Include="src\image_manager\image_manager.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\image_manager\producer_fake.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\image_manager\producer_v4l2.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\image_manager\memory.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\mio\camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="tests\mio_camera_test.cpp">
       <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="src\image_manager\producer_v4l2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\image_manager\image_manager.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\image_manager\memory.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\image_manager\producer_fake.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
