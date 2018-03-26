@@ -12,6 +12,7 @@
 #include "mediad_pri.h"
 #include "debug.h"
 #include "command.h"
+#include "config_pri.h"
 
 
 MIO_ImageManager_ProducerHandle                   MEDIAD_gImageProducerHandles[MEDIAD_IMAGE_PRODUCERS_COUNT];
@@ -54,7 +55,7 @@ static void * MEDIAD_imageProducerMain(void *pArg)
         ret = MIO_imageManager_producerGetFrame(producerHandle, &frame);
         if (OSA_isFailed(ret)) {
             ++successiveFailuresCount;
-            if (successiveFailuresCount >= 500) {
+            if (successiveFailuresCount >= MEDIAD_MAX_SUCCESSIVE_CAMERA_FAILURES_COUNT) {
                 system("reboot");  /* TODO: this is a bad design, because handling camera failure is not the responsibility of thid module */ 
             }
 
@@ -66,9 +67,7 @@ static void * MEDIAD_imageProducerMain(void *pArg)
             OSA_warn("Failed to get frame from image producer %d: %d.\n", kProducerId, ret);
             continue;
         }
-
-        successiveFailuresCount = 0;
-
+        
         OSA_debug("Producer %d got frame %u. Counter = %u.\n", kProducerId, frame.index, framesCount);
 
 #ifdef OSA_DEBUG
@@ -79,8 +78,15 @@ static void * MEDIAD_imageProducerMain(void *pArg)
 
         ret = MIO_imageManager_writeFrame(MEDIAD_gImageManagerHandle, kProducerId, &frame);
         if (OSA_isFailed(ret)) {
+            ++successiveFailuresCount;
+            if (successiveFailuresCount >= MEDIAD_MAX_SUCCESSIVE_CAMERA_FAILURES_COUNT) {
+                system("reboot");  /* TODO: this is a bad design, because handling camera failure is not the responsibility of thid module */ 
+            }
+
             OSA_warn("Failed to write frame %u from producer %d to memory: %d.\n", frame.index, kProducerId, ret);
         }
+
+        successiveFailuresCount = 0;
 
         OSA_debug("Producer %d wrote frame %u to memory region. Counter = %u.\n", kProducerId, frame.index, framesCount);
 

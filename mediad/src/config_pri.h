@@ -16,6 +16,8 @@
 #endif // !OSA_OS_WINDOWS
 
 
+#define MEDIAD_MAX_SUCCESSIVE_CAMERA_FAILURES_COUNT    500
+
 
 #ifdef __cplusplus
 extern "C" {
