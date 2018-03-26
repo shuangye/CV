@@ -109,9 +109,11 @@ static void *connectionMain(void *arg)
 
         /* in case the sonnection is closed by the other end */
         if (0 == sigsetjmp(MEDIAD_gStackEnv, 1)) {
+            /* returned directly */
             transmittedLen = send(sd, &message, kMessageLen, 0);
         }
-        else {
+        else { 
+            /* returned from `siglongjmp` */
             if (MEDIAD_sigCheck(SIGPIPE)) {
                 OSA_info("Connection closed by the other end.\n");
                 shouldQuit = OSA_True;
