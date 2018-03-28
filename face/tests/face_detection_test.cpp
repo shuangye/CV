@@ -1,8 +1,10 @@
 #include <osa/osa.h>
 #include <face/face.hpp>
 #include "../src/face_config.h"
-#include "../../cvio/include/cvio/cvio.hpp"
+#include "../../mio/include/mio/mio.hpp"
 #include "face_tests.hpp"
+
+using namespace mio;
 
 
 /**************************************************/

@@ -24,7 +24,7 @@ int Stereo::calcDisparity(Mat lImage, Mat rImage, Mat& disparity)
     
 	int channelCount = lImage.channels();
 	Size imageSize = lImage.size();
-	int numberOfDisparities = ((imageSize.width / 8) + 15) & -16;
+	int numberOfDisparities = ((imageSize.width / 8) + 15) & (~15);    /* multiple of 16 */
 
 	t1 = getTickCount();
 
@@ -34,11 +34,12 @@ int Stereo::calcDisparity(Mat lImage, Mat rImage, Mat& disparity)
 	sgbm.SADWindowSize = 5;
 	sgbm.P1 = 8 * channelCount * sgbm.SADWindowSize * sgbm.SADWindowSize;
 	sgbm.P2 = 32 * channelCount * sgbm.SADWindowSize * sgbm.SADWindowSize;
+    
 	sgbm.minDisparity = 0;
 	sgbm.numberOfDisparities = numberOfDisparities;
 	sgbm.uniquenessRatio = 5;
 	sgbm.speckleWindowSize = 100;
-	sgbm.speckleRange = 32;
+	sgbm.speckleRange = 64;
 	sgbm.disp12MaxDiff = 1;
 	sgbm.fullDP = false;
 	sgbm(lImage, rImage, disparity);

@@ -124,6 +124,7 @@ int Living::determineLivingFaceTopHalf(Mat &lImage, Mat &rImage, cv::Rect lFaceR
 
     _detectedFaceInDisparity = lFaceRegion;  /* left side as the reference */
     
+#if 0
     /* stereo disparity involves heavy calculations, so try to calc the disparity of the covered region only */
     faces[0] = lFaceRegion;
     faces[1] = rFaceRegion;
@@ -136,15 +137,19 @@ int Living::determineLivingFaceTopHalf(Mat &lImage, Mat &rImage, cv::Rect lFaceR
 		return OSA_STATUS_EINVAL;
 	}
 	
-	lFace = Mat(lImage, lFaceRegion);
-
     /* extract the corresponding face region in disparity map */
     _detectedFaceInDisparity.x -= roundingFaceRegion.x;
     _detectedFaceInDisparity.y -= roundingFaceRegion.y;
-    dFace = Mat(_disparity, _detectedFaceInDisparity);
+#else
+    ret = stereo.calcDisparity(lImage, rImage, _disparity);
+#endif
 
+    dFace = Mat(_disparity, _detectedFaceInDisparity);
+    _dFaceGray = MatUtils::toGray(dFace);
+
+    lFace = Mat(lImage, lFaceRegion);
 	_lFaceGray = MatUtils::toGray(lFace);
-	_dFaceGray = MatUtils::toGray(dFace);
+	
 
 #if 1
 	cv::equalizeHist(_lFaceGray, _lFaceGray);
@@ -185,7 +190,7 @@ int Living::determineLivingFaceBottomHalf(Mat &lImage, Mat &rImage, cv::Rect lFa
 	}
 #endif
 
-    livingFacePenalty(lImage, rImage, lFaceRegion, rFaceRegion, possibility);
+    /* livingFacePenalty(lImage, rImage, lFaceRegion, rFaceRegion, possibility); */
     
 #if FACE_OPENCV_SUPPORTS_GUI    
 	if (_showDisparity) {

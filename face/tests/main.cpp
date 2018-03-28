@@ -4,7 +4,7 @@
 
 int main(int argc, char *argv[])
 {
-    // FACE_detection_Tests();
-    FACE_living_Tests();
+    FACE_detection_Tests();
+    // FACE_living_Tests();
     return 0;
 }

@@ -8,7 +8,7 @@
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>dscv.lib;cvio.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dscv.lib;mio.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />

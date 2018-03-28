@@ -2,9 +2,10 @@
 #include <face/face.hpp>
 #include <dscv/dscv.hpp>
 #include "../src/face_config.h"
-#include "../../cvio/include/cvio/cvio.hpp"
+#include "../../mio/include/mio/mio.hpp"
 #include "face_tests.hpp"
 
+using namespace mio;
 
 static StereoRectifier                 *gpStereoRectifier = NULL;
 
