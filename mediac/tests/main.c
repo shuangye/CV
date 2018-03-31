@@ -35,15 +35,16 @@ static int operate(const int argc, char *argv[])
         ret = MEDIAC_open(gHandle);
     }
     else if (0 == strcmp(pOperation, "format")) {
-        if (argc < 4) {
+        if (argc < 5) {
             OSA_error("Missing parameter for operation %s\n", pOperation);
             ret = OSA_STATUS_EINVAL;
         }
         else {
+            int frameFormat = strtol(argv[3], NULL, 0);
             OSA_Size frameSize;
-            pParameter = argv[3];
-            sscanf(pParameter, " %dx%d ", &frameSize.w, &frameSize.h);
-            ret = MEDIAC_setFormat(gHandle, DSCV_FRAME_TYPE_YUYV, frameSize);
+            pParameter = argv[4];
+            sscanf(pParameter, " %dx%d ",&frameSize.w, &frameSize.h);
+            ret = MEDIAC_setFormat(gHandle, frameFormat, frameSize);
         }
     }
     else if (0 == strcmp(pOperation, "fps")) {

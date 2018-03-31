@@ -116,6 +116,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\librkvpu\vpu.h" />
+    <ClInclude Include="include\librkvpu\vpu_api.h" />
+    <ClInclude Include="include\librkvpu\vpu_global.h" />
+    <ClInclude Include="include\librkvpu\vpu_macro.h" />
+    <ClInclude Include="include\librkvpu\vpu_mem.h" />
+    <ClInclude Include="include\librkvpu\vpu_mem_pool.h" />
+    <ClInclude Include="include\librkvpu\vpu_type.h" />
     <ClInclude Include="include\mio\image_manager\config.h" />
     <ClInclude Include="include\mio\image_manager\consumer.h" />
     <ClInclude Include="include\mio\image_manager\image_manager.h" />
@@ -125,12 +132,16 @@
     <ClInclude Include="include\mio\mio.hpp" />
     <ClInclude Include="include\mio\camera.hpp" />
     <ClInclude Include="include\mio\mio_definitions.h" />
+    <ClInclude Include="include\mio\mio_utils.h" />
+    <ClInclude Include="include\mio\mjpeg_decoder.h" />
     <ClInclude Include="src\mio_config.h" />
     <ClInclude Include="tests\mio_tests.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\image_manager\image_manager.c" />
     <ClCompile Include="src\image_manager\memory.c" />
+    <ClCompile Include="src\mio_utils.c" />
+    <ClCompile Include="src\mjpeg_decoder.c" />
     <ClCompile Include="src\image_manager\producer_fake.c" />
     <ClCompile Include="src\image_manager\producer_v4l2.c" />
     <ClCompile Include="src\mio\camera.cpp" />

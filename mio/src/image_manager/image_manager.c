@@ -8,6 +8,8 @@
 #include <pthread.h>
 #include <dscv/dscv.h>
 #include <mio/image_manager/image_manager.h>
+#include <mio/mio_utils.h>
+#include <mio/mjpeg_decoder.h>
 
 #define IMAGE_MANAGER_PROTECT_USED_FRAMES                         1    /* do not overwrite if a frame is being used by a consumer */
 
@@ -57,6 +59,8 @@ typedef struct MIO_ImageManager_Provider {
     Uint32                            frameDataLen;  /* in bytes, each frame has the same length  */
     OSA_Size                          size;      /* width & height, each frame has the same width & height */    
     MIO_ImageManager_Distruction      distributions[MIO_IMAGE_MANAGER_MAX_DISTRIBUTIONS_COUNT];
+    MIO_MJPEGDECODER_Handle           mjpegDecoder;
+    DSCV_Frame                        decodedFrame;
 } MIO_ImageManager_Provider;
 
 
@@ -87,34 +91,71 @@ typedef struct MEDIAD_VideoManager {
 #pragma region Local Private Functions
 #endif // _MSC_VER
 
-/* DSCV_calcFrameLen */
-static size_t calcFrameDataLen(const DSCV_FrameType type, const OSA_Size size)
-{
-    size_t len = 0;
-
-    switch (type) {
-    case DSCV_FRAME_TYPE_NV21:
-    case DSCV_FRAME_TYPE_NV12:
-        len = size.w * size.h / 2 * 3;
-        break;
-    case DSCV_FRAME_TYPE_YUV422:
-    case DSCV_FRAME_TYPE_YUYV:
-    case DSCV_FRAME_TYPE_JPG:  /* give max since the length of every JPG frame varies */
-        len = size.w * size.h * 2;
-        break;
-    default:
-        OSA_error("The frame format %d is not implemented yet.\n", type);
-        len = 0;
-        break;
-    }
-
-    return len;
-}
-
 
 static inline size_t calcFrameLen(const MIO_ImageManager_Provider *pProvider)
 {
     return sizeof(MIO_ImageManager_FrameHeader) + pProvider->frameDataLen;    /* header + content */
+}
+
+
+static void deinitProvider(MIO_ImageManager *pManager)
+{
+    MIO_ImageManager_MemHeader          *pHeader = pManager->pHeader;
+    MIO_ImageManager_Provider           *pProvider = NULL;
+    MIO_MJPEGDECODER_Options             decoderOptions;
+    size_t                               i;
+
+    for (i = 0; i < OSA_arraySize(pHeader->providers); ++i) {
+        pProvider = &pHeader->providers[i];
+        if (NULL != pProvider->decodedFrame.pData) {
+            free(pProvider->decodedFrame.pData);
+            pProvider->decodedFrame.pData = NULL;
+        }
+        MIO_MJPEGDECODER_deinit(pProvider->mjpegDecoder);
+    }
+}
+
+
+static int initProvider(MIO_ImageManager *pManager, const MIO_ImageManager_Config *pConfig)
+{
+    MIO_ImageManager_MemHeader          *pHeader = pManager->pHeader;
+    MIO_ImageManager_Provider           *pProvider = NULL;
+    MIO_MJPEGDECODER_Options             decoderOptions;
+    size_t                               i;
+    int                                  ret = OSA_STATUS_OK;
+
+    decoderOptions.frameSize = pConfig->frameSize;
+
+    for (i = 0; i < OSA_arraySize(pHeader->providers); ++i) {
+        pProvider = &pHeader->providers[i];
+        pProvider->format = pConfig->frameFormat;
+        pProvider->size = pConfig->frameSize;
+        pProvider->frameDataLen = MIO_UTL_calcFrameDataLen((DSCV_FrameType)pConfig->frameFormat, pConfig->frameSize);
+
+        if (pConfig->frameFormat == DSCV_FRAME_TYPE_JPG) {
+            ret = MIO_MJPEGDECODER_init(&decoderOptions, &pProvider->mjpegDecoder);
+            if (OSA_isFailed(ret)) {
+                OSA_error("Failed to init MJPEG decoder: %d.\n", ret);
+                goto _failure;
+            }
+            ret = MIO_MJPEGDECODER_decodedFrameDataLen(pProvider->mjpegDecoder, &pProvider->decodedFrame.dataLen);
+            if (OSA_isFailed(ret)) {
+                OSA_error("Failed to determine decoded frame data length: %d.\n", ret);
+                goto _failure;
+            }
+            pProvider->decodedFrame.pData = malloc(pProvider->decodedFrame.dataLen);
+            if (NULL == pProvider->decodedFrame.pData) {
+                ret = OSA_STATUS_ENOMEM;
+                goto _failure;
+            }
+        }
+    }
+
+    return ret;
+
+_failure:
+    deinitProvider(pManager);
+    return ret;
 }
 
 
@@ -207,15 +248,12 @@ int MIO_imageManager_init(const MIO_ImageManager_Config *pConfig, MIO_ImageManag
     if (pManager->isProducer) {
         if (MIO_IMAGE_MANAGER_MEM_MAGIC != pHeader->magic || !pHeader->inited) {
             memset(pManager->pMemRegion, 0, MIO_IMAGE_MANAGER_MEM_LEN);
-            /* firstly, init the header */
+            ret = initProvider(pManager, pConfig);
+            if (OSA_isFailed(ret)) {
+                goto _failure;
+            }
             pHeader->magic = MIO_IMAGE_MANAGER_MEM_MAGIC;
             pHeader->inited = 1;
-            for (i = 0; i < OSA_arraySize(pHeader->providers); ++i) {
-                pProvider = &pHeader->providers[i];
-                pProvider->format = pConfig->frameFormat;
-                pProvider->size = pConfig->frameSize;
-                pProvider->frameDataLen = calcFrameDataLen((DSCV_FrameType)pConfig->frameFormat, pConfig->frameSize);
-            }
         }
     }
     else {
@@ -305,6 +343,8 @@ int MIO_imageManager_deinit(MIO_ImageManager_Handle handle)
             }
         }
 
+        deinitProvider(pManager);
+
         pHeader->magic = 0;
         pHeader->inited = 0;
     }
@@ -357,10 +397,12 @@ int MIO_imageManager_writeFrame(MIO_ImageManager_Handle handle, const int produc
     MIO_ImageManager_Provider           *pProvider = NULL;
     MIO_ImageManager_Distruction        *pDistribution = NULL;
     MIO_ImageManager_FrameHeader        *pFrameHeader = NULL;
+    DSCV_Frame                          *pTargetFrame = (DSCV_Frame *)pFrame;
     void                                *pFrameData;
     Iptr                                 baseAddr;
     Bool                                 foundAnSlot;
     size_t                               writingPosition;
+    int                                  ret;
     
 
     if (NULL == pManager || !OSA_isInRange(producerId, 0, MIO_IMAGE_MANAGER_PRODUCERS_COUNT) || NULL == pFrame) {
@@ -369,10 +411,10 @@ int MIO_imageManager_writeFrame(MIO_ImageManager_Handle handle, const int produc
     }
     
 #if 0
-    if (0 == access("/data/rk_backup/dump_yuv", F_OK)) {
+    if (0 == access("/data/rk_backup/dump_provider", F_OK)) {
         OSA_info("Will dump frame size %dx%d, length %u from camera %d.\n", pFrame->size.w, pFrame->size.h, pFrame->dataLen, producerId);
         char name[64];
-        snprintf(name, sizeof(name), "/data/rk_backup/camera%d_%d.yuv", producerId, (int)time(NULL));
+        snprintf(name, sizeof(name), "/data/rk_backup/camera%d_%d.camera", producerId, (int)time(NULL));
         FILE *fp = fopen(name, "w");
         if (NULL != fp) {
             fwrite(pFrame->pData, 1, pFrame->dataLen, fp);
@@ -394,6 +436,31 @@ int MIO_imageManager_writeFrame(MIO_ImageManager_Handle handle, const int produc
             OSA_error("Frame length %u for frame format JPG exceeds the max length %u.\n", pFrame->dataLen, pProvider->frameDataLen);
             return OSA_STATUS_EINVAL;
         }
+
+        ret = MIO_MJPEGDECODER_decodeToNV12(pProvider->mjpegDecoder, pFrame, &pProvider->decodedFrame);
+        if (OSA_isFailed(ret)) {
+            OSA_error("Failed to convert MJPEG to NV12 from provider %d: %d.\n", producerId, ret);
+            return ret;
+        }
+        pTargetFrame = &pProvider->decodedFrame;
+        OSA_info("Decoded JPG frame %d from provider %d.\n", pFrame->index, producerId);
+
+#if 0
+        static int counter = 0;
+        if (counter % 64 == 0) {
+            if (0 == access("/data/rk_backup/dump_decoder", F_OK)) {
+                OSA_info("Will dump frame size %dx%d, length %u from camera %d.\n", pFrame->size.w, pFrame->size.h, pFrame->dataLen, producerId);
+                char name[64];
+                snprintf(name, sizeof(name), "/data/rk_backup/camera%d_%d.decoder", producerId, (int)time(NULL));
+                FILE *fp = fopen(name, "w");
+                if (NULL != fp) {
+                    fwrite(pTargetFrame->pData, 1, pTargetFrame->dataLen, fp);
+                    fclose(fp);
+                }
+            }
+        }
+        ++counter;
+#endif
     }
     else {
         if (pFrame->dataLen != pProvider->frameDataLen) {
@@ -401,7 +468,7 @@ int MIO_imageManager_writeFrame(MIO_ImageManager_Handle handle, const int produc
             return OSA_STATUS_EINVAL;
         }
     }
-        
+
     /* write to all distributions */
     for (j = 0; j < OSA_arraySize(pProvider->distributions); ++j) {
         pDistribution = &pProvider->distributions[j];
@@ -456,15 +523,32 @@ int MIO_imageManager_writeFrame(MIO_ImageManager_Handle handle, const int produc
             return OSA_STATUS_ENOMEM;
         }
 #endif
-
+        
         pFrameHeader = (MIO_ImageManager_FrameHeader *)(baseAddr + calcFrameLen(pProvider) * writingPosition);
         pFrameData = (void *)((Iptr)pFrameHeader + sizeof(*pFrameHeader));    /* data follows immediately after the header */
-        pFrameHeader->frame = *pFrame;
+        pFrameHeader->frame = *pTargetFrame;
         pFrameHeader->frame.pData = pFrameData;
         pFrameHeader->frame.index = writingPosition;
         OSA_debug("Producer %d distribution %d frame index %u, copying %p -> %p with len %u. Dist base %p, write index %u\n", 
-            producerId, j, pFrame->index, pFrame->pData, pFrameData, pFrame->dataLen, (void *)baseAddr, writingPosition);
-        memcpy(pFrameData, pFrame->pData, pFrame->dataLen);  // TODO: convert to YUV if JPG
+            producerId, j, pTargetFrame->index, pTargetFrame->pData, pFrameData, pTargetFrame->dataLen, (void *)baseAddr, writingPosition);
+        memcpy(pFrameData, pTargetFrame->pData, pTargetFrame->dataLen);
+
+#if 0
+        static int counter = 0;
+        if (counter % 64 == 0) {
+            if (0 == access("/data/rk_backup/dump_dist", F_OK)) {
+                OSA_info("Will dump frame size %dx%d, length %u from camera %d.\n", pFrame->size.w, pFrame->size.h, pFrame->dataLen, producerId);
+                char name[64];
+                snprintf(name, sizeof(name), "/data/rk_backup/camera%d_%d.dist", producerId, (int)time(NULL));
+                FILE *fp = fopen(name, "w");
+                if (NULL != fp) {
+                    fwrite(pFrameData, 1, pTargetFrame->dataLen, fp);
+                    fclose(fp);
+                }
+            }
+        }
+        ++counter;
+#endif
                 
         ++writingPosition;
         writingPosition %= pDistribution->maxFramesCount;
@@ -544,6 +628,23 @@ int MIO_imageManager_readFrame(MIO_ImageManager_Handle handle, const int produce
     pDistribution->rIndex = readingPosition;
     pFrameHeader->status = MIO_IMAGE_MANAGER_IMAGE_STATUS_STALE;
     pthread_rwlock_unlock(&pDistribution->lock);
+
+#if 0
+    static int counter = 0;
+    if (counter % 64 == 0) {
+        if (0 == access("/data/rk_backup/dump_read", F_OK)) {
+            OSA_info("Will dump frame size %dx%d, length %u from camera %d.\n", pFrame->size.w, pFrame->size.h, pFrame->dataLen, producerId);
+            char name[64];
+            snprintf(name, sizeof(name), "/data/rk_backup/camera%d_%d.read", producerId, (int)time(NULL));
+            FILE *fp = fopen(name, "w");
+            if (NULL != fp) {
+                fwrite(pFrame->pData, 1, pFrame->dataLen, fp);
+                fclose(fp);
+            }
+        }
+    }
+    ++counter;
+#endif
     
     OSA_debug("Provided frame index %u at %p from producer %d to consumer %d.\n", pFrame->index, pFrame->pData, producerId, consumerRole);
     return OSA_STATUS_OK;

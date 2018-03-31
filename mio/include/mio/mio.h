@@ -11,6 +11,7 @@
 
 #include "mio_definitions.h"
 #include "image_manager/image_manager.h"
+#include "mio_utils.h"
 
 
 #ifdef __cplusplus

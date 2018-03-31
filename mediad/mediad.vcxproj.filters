@@ -45,6 +45,9 @@
     <ClCompile Include="src\mediad_signal.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\exception_handler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\mediad\mediad.h">
@@ -84,6 +87,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\mio\mio_definitions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\exception_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

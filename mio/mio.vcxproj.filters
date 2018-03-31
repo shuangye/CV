@@ -54,6 +54,33 @@
     <ClInclude Include="include\mio\image_manager\producer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\librkvpu\vpu_api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\librkvpu\vpu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\librkvpu\vpu_global.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\librkvpu\vpu_macro.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\librkvpu\vpu_mem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\librkvpu\vpu_mem_pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\librkvpu\vpu_type.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mio\mjpeg_decoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mio\mio_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="tests\main.cpp">
@@ -68,13 +95,19 @@
     <ClCompile Include="src\image_manager\producer_v4l2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\image_manager\image_manager.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\image_manager\memory.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\image_manager\producer_fake.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mjpeg_decoder.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mio_utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\image_manager\image_manager.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -12,6 +12,7 @@
 #include "mediad_pri.h"
 #include "debug.h"
 #include "command.h"
+#include "exception_handler.h"
 #include "config_pri.h"
 
 
@@ -32,6 +33,7 @@ static void * MEDIAD_imageProducerMain(void *pArg)
     const int kProducerId = (int)pArg;
     const MIO_ImageManager_ProducerHandle producerHandle = MEDIAD_gImageProducerHandles[kProducerId];
     DSCV_Frame frame;
+    MEDIAD_Exception exception;
     
 
     OSA_info("Created image producer %d. Process %ld, thread %ld.\n", kProducerId, (long)OSA_getpid(), (long)OSA_gettid());
@@ -55,10 +57,14 @@ static void * MEDIAD_imageProducerMain(void *pArg)
         ret = MIO_imageManager_producerGetFrame(producerHandle, &frame);
         if (OSA_isFailed(ret)) {
             ++successiveFailuresCount;
-            if (successiveFailuresCount >= MEDIAD_MAX_SUCCESSIVE_CAMERA_FAILURES_COUNT) {
-                system("reboot");  /* TODO: this is a bad design, because handling camera failure is not the responsibility of thid module */ 
-            }
 
+            exception.type = MEDIAD_EXCEPTION_TYPE_CAMERA_NO_IMAGE;
+            exception.errorCode = ret;
+            exception.successiveErrorsCount = successiveFailuresCount;
+            exception.producerHandle = producerHandle;
+            exception.imageManagerHandle = MEDIAD_gImageManagerHandle;
+            MEDIAD_handleException(&exception);
+            
             if (OSA_STATUS_EAGAIN == ret) {
                 OSA_debug("Try to get frame from producer %d next time.\n", kProducerId);
                 continue;
@@ -79,9 +85,13 @@ static void * MEDIAD_imageProducerMain(void *pArg)
         ret = MIO_imageManager_writeFrame(MEDIAD_gImageManagerHandle, kProducerId, &frame);
         if (OSA_isFailed(ret)) {
             ++successiveFailuresCount;
-            if (successiveFailuresCount >= MEDIAD_MAX_SUCCESSIVE_CAMERA_FAILURES_COUNT) {
-                system("reboot");  /* TODO: this is a bad design, because handling camera failure is not the responsibility of thid module */ 
-            }
+
+            exception.type = MEDIAD_EXCEPTION_TYPE_IMAGE_MANAGER_WRITING_FAILED;
+            exception.errorCode = ret;
+            exception.successiveErrorsCount = successiveFailuresCount;
+            exception.producerHandle = producerHandle;
+            exception.imageManagerHandle = MEDIAD_gImageManagerHandle;
+            MEDIAD_handleException(&exception);
 
             OSA_warn("Failed to write frame %u from producer %d to memory: %d.\n", frame.index, kProducerId, ret);
         }
@@ -113,7 +123,7 @@ int MEDIAD_init()
     MIO_ImageManager_ProducerFormat format;
     const unsigned int frameRate = 30;
 
-
+    
     OSA_clear(&MEDIAD_gImageManagerHandle);
     OSA_clear(&MEDIAD_gImageProducerHandles);
     OSA_clear(&gImageProducerTasks);
