@@ -21,6 +21,9 @@ static int reinitProducer(MIO_ImageManager_ProducerHandle handle)
     ret = syscall(384, 1);  // custom syscall, to reinit the whole camera module
     OSA_info("syscall 384 returned %d.\n", ret);
 
+    /* the syscall above will re-create /dev/video* nodes, so let's delay a while. */
+    OSA_msleep(500);
+
     ret = MIO_imageManager_producerOpen(handle);
 
     if (isStreaming) {
