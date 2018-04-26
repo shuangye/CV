@@ -16,6 +16,7 @@
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
 #include <pthread.h>
+#include <sys/poll.h>
 #include <osa/osa.h>
 #include <dscv/dscv.h>
 #include <mio/image_manager/image_manager.h>
@@ -517,12 +518,12 @@ int MIO_imageManager_producerOpen(MIO_ImageManager_ProducerHandle handle)
     pDevice->fd = open(pDevice->devicePath, O_RDWR, 0);
     if (pDevice->fd < 0) {
         ret = errno;
-        OSA_error("Failed to open device %s.\n", pDevice->devicePath);
+        OSA_error("Failed to open device %s: %d.\n", pDevice->devicePath, ret);
         return ret;
     }
     
     OSA_info("Opened device %s.\n", pDevice->devicePath);
-    queryDevice(pDevice);
+    // queryDevice(pDevice);
     return OSA_STATUS_OK;
 }
 
@@ -737,7 +738,7 @@ int MIO_imageManager_producerStartStreaming(MIO_ImageManager_ProducerHandle hand
     ret = ioctl(pDevice->fd, VIDIOC_STREAMON, &type);
     if (0 != ret) {
         ret = errno;
-        OSA_error("Failed to start streaming: %d.\n", ret);
+        OSA_error("Device %s failed to start streaming: %d.\n", pDevice->devicePath, ret);
         return ret;
     }
 
@@ -752,6 +753,7 @@ int MIO_imageManager_producerStopStreaming(MIO_ImageManager_ProducerHandle handl
     MIO_ImageManager_Producer_V4l2Device *pDevice = (MIO_ImageManager_Producer_V4l2Device *)handle;
     int ret;
     enum v4l2_buf_type type = gkBufferType;
+    
 
     if (NULL == pDevice) {
         return OSA_STATUS_EINVAL;
@@ -802,8 +804,6 @@ int MIO_imageManager_producerGetFrame(MIO_ImageManager_ProducerHandle handle, DS
     int ret;
     unsigned int i; 
     enum v4l2_buf_type type = gkBufferType;
-    struct timeval timeout;
-    fd_set fds;
     MIO_ImageManager_Producer_V4l2Device *pDevice = (MIO_ImageManager_Producer_V4l2Device *)handle;
 
 
@@ -829,6 +829,8 @@ int MIO_imageManager_producerGetFrame(MIO_ImageManager_ProducerHandle handle, DS
     }
         
 #if 0
+    fd_set fds;
+    struct timeval timeout;    
     /* wait and read one frame */    
     for (; ;) {
         FD_ZERO(&fds);
@@ -851,9 +853,25 @@ int MIO_imageManager_producerGetFrame(MIO_ImageManager_ProducerHandle handle, DS
         }
     }
 #else
-    ret = requestOneFrameFromDriver(pDevice, pFrame);
+    for (i = 0; i < 10; ++i) {
+        int timeout = 1000;  // in ms
+        struct pollfd fds = { 0 };
+        fds.fd = pDevice->fd;
+        fds.events = POLLIN;
+        ret = poll(&fds, 1, timeout);
+        if (ret < 0) {
+            return errno;
+        }
+        if (0 == ret) {
+            continue;
+        }
+        if (ret > 0) {
+            break;
+        }
+    }
 #endif
 
+    ret = requestOneFrameFromDriver(pDevice, pFrame);
     return ret;
 }
 
