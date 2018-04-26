@@ -82,6 +82,9 @@ int MEDIAD_handleException(MEDIAD_Exception *pException)
         return OSA_STATUS_EINVAL;
     }
 
+    OSA_msleep(1000);
+    return OSA_STATUS_OK;
+
     OSA_info("Handling exception %d.\n", pException->type);
 
     switch (pException->type) {
