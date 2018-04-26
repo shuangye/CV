@@ -2,6 +2,8 @@
 * Created by Liu Papillon, on Jan 4, 2018.
 */
 
+#include <unistd.h>
+#include <sys/syscall.h>
 #include <stdlib.h>
 #include <string.h>
 #include <osa/osa.h>
@@ -65,6 +67,9 @@ static int operate(const int argc, char *argv[])
     }
     else if (0 == strcmp(pOperation, "close")) {
         ret = MEDIAC_close(gHandle);
+    }
+    else if (0 == strcmp(pOperation, "reset")) {
+        ret = syscall(384, 1);  // custom syscall, to reinit the whole camera module. The 2nd arg is ignored in the kernel.
     }
     else {
         OSA_error("Unsupported operation %s\n", pOperation);
