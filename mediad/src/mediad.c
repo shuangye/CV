@@ -37,6 +37,10 @@ static void * MEDIAD_imageProducerMain(void *pArg)
     
 
     OSA_info("Created image producer %d. Process %ld, thread %ld.\n", kProducerId, (long)OSA_getpid(), (long)OSA_gettid());
+    
+    memcpy(exception.producerHandles, MEDIAD_gImageProducerHandles, sizeof(MEDIAD_gImageProducerHandles));
+    exception.producerId = kProducerId;
+    exception.imageManagerHandle = MEDIAD_gImageManagerHandle;
         
     for (; ;) {
         if (gImageProducerTasksShouldQuit[kProducerId]) {
@@ -61,8 +65,6 @@ static void * MEDIAD_imageProducerMain(void *pArg)
             exception.type = MEDIAD_EXCEPTION_TYPE_CAMERA_NO_IMAGE;
             exception.errorCode = ret;
             exception.successiveErrorsCount = successiveFailuresCount;
-            exception.producerHandle = producerHandle;
-            exception.imageManagerHandle = MEDIAD_gImageManagerHandle;
             MEDIAD_handleException(&exception);
             
             if (OSA_STATUS_EAGAIN == ret) {
@@ -89,8 +91,6 @@ static void * MEDIAD_imageProducerMain(void *pArg)
             exception.type = MEDIAD_EXCEPTION_TYPE_IMAGE_MANAGER_WRITING_FAILED;
             exception.errorCode = ret;
             exception.successiveErrorsCount = successiveFailuresCount;
-            exception.producerHandle = producerHandle;
-            exception.imageManagerHandle = MEDIAD_gImageManagerHandle;
             MEDIAD_handleException(&exception);
 
             OSA_warn("Failed to write frame %u from producer %d to memory: %d.\n", frame.index, kProducerId, ret);

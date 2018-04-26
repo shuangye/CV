@@ -10,24 +10,42 @@
 #include "config_pri.h"
 
 
-static int reinitProducer(MIO_ImageManager_ProducerHandle handle)
+static int reinitProducer(MEDIAD_Exception *pException)
 {
-    int ret;
-    int isStreaming = MIO_imageManager_producerIsStreaming(handle);
+    int ret;    
+    int isStreaming[MEDIAD_IMAGE_PRODUCERS_COUNT];
+    size_t i;
+    MIO_ImageManager_ProducerHandle producerHandle;
 
-    MIO_imageManager_producerStopStreaming(handle);
-    MIO_imageManager_producerClose(handle);
+    
+    for (i = 0; i < OSA_arraySize(pException->producerHandles); ++i) {
+        producerHandle = pException->producerHandles[i];
+        isStreaming[i] = MIO_imageManager_producerIsStreaming(producerHandle);
+        MIO_imageManager_producerStopStreaming(producerHandle);
+        MIO_imageManager_producerClose(producerHandle);
+    }
 
-    ret = syscall(384, 1);  // custom syscall, to reinit the whole camera module
+    ret = syscall(384, 1);  // custom syscall, to reinit the whole camera module. The 2nd arg is ignored in the kernel.
     OSA_info("syscall 384 returned %d.\n", ret);
 
     /* the syscall above will re-create /dev/video* nodes, so let's delay a while. */
-    OSA_msleep(500);
+    OSA_msleep(1000);
 
-    ret = MIO_imageManager_producerOpen(handle);
+    for (i = 0; i < OSA_arraySize(pException->producerHandles); ++i) {
+        producerHandle = pException->producerHandles[i];
+        ret = MIO_imageManager_producerOpen(producerHandle);
+        if (OSA_isFailed(ret)) {
+            OSA_error("Failed to open device: %d.\n", ret);
+            continue;
+        }
 
-    if (isStreaming) {
-        ret = MIO_imageManager_producerStartStreaming(handle);
+        if (isStreaming[i]) {
+            ret = MIO_imageManager_producerStartStreaming(producerHandle);
+            if (OSA_isFailed(ret)) {
+                OSA_error("Failed to start streaming: %d.\n", ret);
+                continue;
+            }
+        }
     }
     
     return ret;
@@ -41,12 +59,10 @@ static int handleCamera(MEDIAD_Exception *pException)
     switch (pException->type)
     {
     case MEDIAD_EXCEPTION_TYPE_CAMERA_NO_IMAGE:
-        if (pException->successiveErrorsCount >= MEDIAD_MAX_SUCCESSIVE_CAMERA_FAILURES_COUNT) {
-            ret = reinitProducer(pException->producerHandle);
-        }
-        break;
     case MEDIAD_EXCEPTION_TYPE_IMAGE_MANAGER_WRITING_FAILED:
-        ret = reinitProducer(pException->producerHandle);
+        if (pException->successiveErrorsCount >= MEDIAD_MAX_SUCCESSIVE_CAMERA_FAILURES_COUNT) {
+            ret = reinitProducer(pException);
+        }
         break;
     default:
         OSA_warn("Exception type %d is not handled.\n", pException->type);
@@ -65,6 +81,8 @@ int MEDIAD_handleException(MEDIAD_Exception *pException)
     if (NULL == pException) {
         return OSA_STATUS_EINVAL;
     }
+
+    OSA_info("Handling exception %d.\n", pException->type);
 
     switch (pException->type) {
     case MEDIAD_EXCEPTION_TYPE_CAMERA_NO_IMAGE:

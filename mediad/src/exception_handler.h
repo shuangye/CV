@@ -6,6 +6,8 @@
 * Created by Liu Papillon, on Mar 31, 2018.
 */
 
+#include "mediad/mediad_config.h"
+
 
 
 typedef enum MEDIAD_ExceptionType {
@@ -20,7 +22,8 @@ typedef struct MEDIAD_Exception {
     Int32                                type;       /* of type MEDIAD_ExceptionType */
     Int32                                errorCode;
     Int32                                successiveErrorsCount;
-    MIO_ImageManager_ProducerHandle      producerHandle;
+    Int32                                producerId;
+    MIO_ImageManager_ProducerHandle      producerHandles[MEDIAD_IMAGE_PRODUCERS_COUNT];
     MIO_ImageManager_Handle              imageManagerHandle;
 } MEDIAD_Exception;
 
