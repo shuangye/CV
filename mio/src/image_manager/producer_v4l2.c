@@ -59,6 +59,14 @@ typedef struct LVC_Device {
 } MIO_ImageManager_Producer_V4l2Device;
 
 
+typedef enum DeviceReadyType {
+    DEVICE_READY_TYPE_NONE         = 0,
+    DEVICE_READY_TYPE_READ,
+    DEVICE_READY_TYPE_WRITE,
+    DEVICE_READY_TYPE_COUNT,
+} MIO_DeviceReadyType;
+
+
 
 /************************************ global variables ************************************/
 
@@ -235,6 +243,44 @@ static int queryDevice(const MIO_ImageManager_Producer_V4l2Device *pDevice)
     return OSA_STATUS_OK;
 }
 
+static Bool isDeviceReady(const MIO_ImageManager_Producer_V4l2Device *pDevice, const MIO_DeviceReadyType type)
+{
+    int i;
+    int ret;
+    int events;
+    const int timeout = 1000;  // in ms
+
+    switch (type) {
+    case DEVICE_READY_TYPE_READ:
+        events = POLLIN;
+        break;
+    case DEVICE_READY_TYPE_WRITE:
+        events = POLLOUT;
+        break;
+    default:
+        return OSA_False;
+        break;
+    }
+
+    for (i = 0; i < 10; ++i) {  // to be finite
+        struct pollfd fds = { 0 };
+        fds.fd = pDevice->fd;
+        fds.events = events;
+        ret = poll(&fds, 1, timeout);
+        if (ret < 0) {
+            return OSA_False;
+        }
+        if (0 == ret) {
+            continue;
+        }
+        if (ret > 0) {
+            return OSA_True;
+        }
+    }
+
+    return OSA_False;
+}
+
 
 static int releaseDriverBuffers(MIO_ImageManager_Producer_V4l2Device *pDevice)
 {
@@ -367,6 +413,10 @@ static int requestOneFrameFromDriver(MIO_ImageManager_Producer_V4l2Device *pDevi
 
 
     OSA_debug("Will get frame from device %s\n", pDevice->devicePath);
+
+    if (!isDeviceReady(pDevice, DEVICE_READY_TYPE_READ)) {
+        return OSA_STATUS_EAGAIN;
+    }
 
     /* dequeue one frame */
     OSA_clear(&driverBuffer);
@@ -611,7 +661,7 @@ int MIO_imageManager_producerSetFormat(MIO_ImageManager_ProducerHandle handle, c
     }
 
     /* now change format */
-
+    
     v4lPixelFormat = mapFrameFormat(pFormat->frameType);
     
     targetFormat.fmt.pix.width       = pFormat->frameSize.w;
@@ -760,7 +810,7 @@ int MIO_imageManager_producerStopStreaming(MIO_ImageManager_ProducerHandle handl
     }
 
     if (pDevice->fd < 0) {
-        OSA_error("Device is not opened yet.\n");
+        OSA_error("Device %s is not opened yet.\n", pDevice->devicePath);
         return OSA_STATUS_EPERM;
     }
 
@@ -771,7 +821,7 @@ int MIO_imageManager_producerStopStreaming(MIO_ImageManager_ProducerHandle handl
     ret = ioctl(pDevice->fd, VIDIOC_STREAMOFF, &type);
     if (0 != ret) {
         ret = errno;
-        OSA_error("Failed to stop streaming: %d.\n", ret);
+        OSA_error("Device %s failed to stop streaming: %d.\n", pDevice->devicePath, ret);
         return ret;
     }
 
@@ -827,49 +877,6 @@ int MIO_imageManager_producerGetFrame(MIO_ImageManager_ProducerHandle handle, DS
         OSA_warn("No free buffers available. Please release some frames first.\n");
         return OSA_STATUS_EPERM;
     }
-        
-#if 0
-    fd_set fds;
-    struct timeval timeout;    
-    /* wait and read one frame */    
-    for (; ;) {
-        FD_ZERO(&fds);
-        FD_SET(pDevice->fd, &fds);
-
-        /* timeout value may be modified by `select` to the time left, so set it every time */
-        timeout.tv_sec = 1;  /* seconds */
-        timeout.tv_usec = 0;
-        ret = select(pDevice->fd + 1, &fds, NULL, NULL, &timeout);  /* test if readable */
-        if (ret > 0) {
-            ret = requestOneFrameFromDriver(pDevice, pFrame);            
-            break;
-        }
-        else if (0 == ret) {  /* timeout */            
-            continue;  /* if you don't break, it will stuck here. So we breakout, and try the next time. */
-        }
-        else {
-            ret = errno;
-            break;
-        }
-    }
-#else
-    for (i = 0; i < 10; ++i) {
-        int timeout = 1000;  // in ms
-        struct pollfd fds = { 0 };
-        fds.fd = pDevice->fd;
-        fds.events = POLLIN;
-        ret = poll(&fds, 1, timeout);
-        if (ret < 0) {
-            return errno;
-        }
-        if (0 == ret) {
-            continue;
-        }
-        if (ret > 0) {
-            break;
-        }
-    }
-#endif
 
     ret = requestOneFrameFromDriver(pDevice, pFrame);
     return ret;
